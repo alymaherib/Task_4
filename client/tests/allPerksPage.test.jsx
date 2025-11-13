@@ -4,9 +4,6 @@ import { Routes, Route } from 'react-router-dom';
 import AllPerks from '../src/pages/AllPerks.jsx';
 import { renderWithRouter } from './utils/renderWithRouter.js';
 
-
-  
-
 describe('AllPerks page (Directory)', () => {
   test('lists public perks and responds to name filtering', async () => {
     // The seeded record gives us a deterministic expectation regardless of the
@@ -49,9 +46,39 @@ describe('AllPerks page (Directory)', () => {
   - verify the record is displayed
   - verify the summary text reflects the number of matching perks
   */
-
   test('lists public perks and responds to merchant filtering', async () => {
-    // This will always fail until the TODO above is implemented.
-    expect(true).toBe(false);
+    const seededPerk = global.__TEST_CONTEXT__.seededPerk;
+
+    // Render the exploration page so it performs its real HTTP fetch.
+    renderWithRouter(
+      <Routes>
+        <Route path="/explore" element={<AllPerks />} />
+      </Routes>,
+      { initialEntries: ['/explore'] }
+    );
+
+    // Wait for the baseline card to appear which guarantees the asynchronous
+    // fetch finished.
+    await waitFor(() => {
+      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+    });
+
+    // Find the merchant filter dropdown and select the seeded merchant.
+    // (Assumes the select is labelled with something containing "merchant".)
+    const merchantFilter = screen.getByLabelText(/merchant/i);
+
+    // Use the seeded record's merchant value; adjust property if your seeded
+    // context exposes it under a different name (e.g. merchantName).
+    fireEvent.change(merchantFilter, {
+      target: { value: seededPerk.merchant },
+    });
+
+    // The seeded perk should still be visible after filtering by its merchant.
+    await waitFor(() => {
+      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+    });
+
+    // The summary text should reflect the number of matching perks.
+    expect(screen.getByText(/showing/i)).toHaveTextContent('Showing');
   });
 });
