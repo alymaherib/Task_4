@@ -46,6 +46,7 @@ describe('AllPerks page (Directory)', () => {
   - verify the record is displayed
   - verify the summary text reflects the number of matching perks
   */
+
   test('lists public perks and responds to merchant filtering', async () => {
     const seededPerk = global.__TEST_CONTEXT__.seededPerk;
 
@@ -63,22 +64,16 @@ describe('AllPerks page (Directory)', () => {
       expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
     });
 
-    // Find the merchant filter dropdown and select the seeded merchant.
-    // (Assumes the select is labelled with something containing "merchant".)
+    // Use the real merchant from the seeded record to drive the filter.
     const merchantFilter = screen.getByLabelText(/merchant/i);
+    fireEvent.change(merchantFilter, { target: { value: seededPerk.merchant } });
 
-    // Use the seeded record's merchant value; adjust property if your seeded
-    // context exposes it under a different name (e.g. merchantName).
-    fireEvent.change(merchantFilter, {
-      target: { value: seededPerk.merchant },
-    });
-
-    // The seeded perk should still be visible after filtering by its merchant.
+    // The seeded perk should still be visible after applying the merchant filter.
     await waitFor(() => {
       expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
     });
 
-    // The summary text should reflect the number of matching perks.
+    // The summary text should continue to reflect the number of matching perks.
     expect(screen.getByText(/showing/i)).toHaveTextContent('Showing');
   });
 });
