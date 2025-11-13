@@ -19,19 +19,26 @@ describe('AllPerks page (Directory)', () => {
     );
 
     // Wait for the baseline card to appear which guarantees the asynchronous
-    // fetch finished.
-    await waitFor(() => {
-      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
-    });
+    // fetch finished. The API call can take >1s, so extend the timeout.
+    await waitFor(
+      () => {
+        expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
 
     // Interact with the name filter input using the real value that
     // corresponds to the seeded record.
     const nameFilter = screen.getByPlaceholderText('Enter perk name...');
     fireEvent.change(nameFilter, { target: { value: seededPerk.title } });
 
-    await waitFor(() => {
-      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
-    });
+    // After filtering, the seeded perk should still be visible.
+    await waitFor(
+      () => {
+        expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
 
     // The summary text should continue to reflect the number of matching perks.
     expect(screen.getByText(/showing/i)).toHaveTextContent('Showing');
@@ -59,19 +66,38 @@ describe('AllPerks page (Directory)', () => {
     );
 
     // Wait for the baseline card to appear which guarantees the asynchronous
-    // fetch finished.
-    await waitFor(() => {
-      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
-    });
+    // fetch finished. Again, allow extra time for the network call.
+    await waitFor(
+      () => {
+        expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    // Grab the merchant <select>. It isn't programmatically linked to the label,
+    // so we use the ARIA role instead of getByLabelText.
+    const merchantFilter = screen.getByRole('combobox');
+
+    // Ensure the seeded merchant option is present before changing the value.
+    await waitFor(
+      () => {
+        expect(
+          screen.getByRole('option', { name: seededPerk.merchant })
+        ).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
 
     // Use the real merchant from the seeded record to drive the filter.
-    const merchantFilter = screen.getByLabelText(/merchant/i);
     fireEvent.change(merchantFilter, { target: { value: seededPerk.merchant } });
 
     // The seeded perk should still be visible after applying the merchant filter.
-    await waitFor(() => {
-      expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText(seededPerk.title)).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
 
     // The summary text should continue to reflect the number of matching perks.
     expect(screen.getByText(/showing/i)).toHaveTextContent('Showing');
